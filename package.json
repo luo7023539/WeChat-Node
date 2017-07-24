@@ -16,5 +16,8 @@
   "bugs": {
     "url": "https://github.com/luo7023539/WeChat-Node/issues"
   },
-  "homepage": "https://github.com/luo7023539/WeChat-Node#readme"
+  "homepage": "https://github.com/luo7023539/WeChat-Node#readme",
+  "devDependencies": {
+    "express": "^4.15.3"
+  }
 }

@@ -3,22 +3,25 @@
 const crypto = require('crypto'), //引入加密模块
       https = require('https'),
       util = require('util'),
-      fs = require('fs');
+      fs = require('fs'),
+      logger = require('morgan'),
+      localAccessToken = require('../access_token');
 
 let sendHttps = function(url){
+    console.log('Send Https', url);
     return new Promise(function(resolve, reject){
         https
             .get(url, function (res) {
-                let buffer = [],
-                    result = '';
+                let result = '';
                 //监听 data 事件
                 res.on('data', function(data){
-                    buffer.push(data);
+                    result += data;
                 });
                 //监听 数据传输完成事件
                 res.on('end', function(){
-                    result = Buffer.concat(buffer, buffer.length).toString('utf-8');
+                    result = result.toString('utf8');
                     //将最后结果返回
+                    console.log('Data End', result)
                     resolve(result);
                 });
             })
@@ -31,6 +34,7 @@ let sendHttps = function(url){
 
 class WeChat {
     constructor (config){
+        this.config = config;
         //设置 WeChat 对象属性 token
         this.token = config.token;
         //设置 WeChat 对象属性 AppID
@@ -40,7 +44,8 @@ class WeChat {
         //设置 WeChat 对象属性 apiDomain
         this.apiDomain = config.apiDomain;
         //设置 WeChat 对象属性 apiURL
-        this.apiDomain = config.apiURL;
+        this.apiURL = config.apiURL;
+
     }
 
     /**
@@ -82,22 +87,35 @@ class WeChat {
             //获取当前时间
             let currentTime = new Date().getTime(),
             //格式化请求地址
-                url = util.format(that.apiURL.accessTokenApi,that.apiDomain,that.AppID,that.AppScrect);
+                url = util.format(that.apiURL.accessTokenApi,
+                                  that.apiDomain,
+                                  that.AppID,
+                                  that.AppScrect);
+
             //判断 本地存储的 access_token 是否有效
-            if(accessTokenJson.access_token === "" ||
-                accessTokenJson.expires_time < currentTime){
+            if(localAccessToken.access_token === "" ||
+                localAccessToken.expires_time < currentTime){
+                console.log('Access_token local error');
                 sendHttps(url)
                     .then(function(data){
                     let result = JSON.parse(data);
 
                     if(data.indexOf("errcode") < 0){
-                        accessTokenJson.access_token = result.access_token;
-                        accessTokenJson.expires_time = new Date().getTime() +
+                        localAccessToken.access_token = result.access_token;
+                        localAccessToken.expires_time = new Date().getTime() +
                             (parseInt(result.expires_in) - 200) * 1e3;
                         //更新本地存储的
-                        fs.writeFile('./wechat/access_token.json',JSON.stringify(accessTokenJson));
+                        fs.writeFile('../access_token.json', JSON.stringify(localAccessToken),
+                            function (err) {
+                                if(err){
+                                    console.log('Write File Error', err)
+                                }else{
+                                    console.log('Write File Success')
+                                }
+                            }
+                        );
                         //将获取后的 access_token 返回
-                        resolve(accessTokenJson.access_token);
+                        resolve(localAccessToken.access_token);
                     }else{
                         //将错误返回
                         resolve(result);
@@ -105,7 +123,8 @@ class WeChat {
                 });
             }else{
                 //将本地存储的 access_token 返回
-                resolve(accessTokenJson.access_token);
+                console.log('Access_token local useful');
+                resolve(localAccessToken.access_token);
             }
         });
     }

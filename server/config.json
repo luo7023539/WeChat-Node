@@ -1,8 +1,8 @@
 {
   "token":"luoliang",
   "AESKey": "CQYtAxR1vzAiZ7p87F9nSps9lo122mQlHCsNdeqITMn",
-  "appID":"wx9808543a5ea8d494",
-  "appScrect":"c19929aebe7048889b2b954f2c829989",
+  "AppID":"wx9808543a5ea8d494",
+  "AppScrect":"c19929aebe7048889b2b954f2c829989",
   "apiDomain":"https://api.weixin.qq.com/",
   "apiURL":{
     "accessTokenApi":"%scgi-bin/token?grant_type=client_credential&appid=%s&secret=%s"

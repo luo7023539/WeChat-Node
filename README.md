@@ -1,5 +1,7 @@
 # WeChat-Node
 WeChat Account base on node 
+基于node - express 创建微信公众号服务器
+
 
 ## Create you own WeChat Account
 

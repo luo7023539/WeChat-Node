@@ -23,8 +23,11 @@ router.get('/getAccessToken',function(req, res){
   we
       .getAccessToken()
       .then(function(data){
-        res.send(data);
+          res.send(data);
+          we.createMenu(data)
       });
+
+
 });
 
 module.exports = router;

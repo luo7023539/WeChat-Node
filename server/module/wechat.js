@@ -3,9 +3,11 @@
 const crypto = require('crypto'), //引入加密模块
       https = require('https'),
       util = require('util'),
+      urltil = require('url'),
       fs = require('fs'),
       logger = require('morgan'),
-      localAccessToken = require('../access_token');
+      localAccessToken = require('../access_token'),
+      menus = require('../menus');
 
 let sendHttps = function(url){
     console.log('Send Https', url);
@@ -30,6 +32,47 @@ let sendHttps = function(url){
             });
     });
 };
+
+let requestPost = function(url,data){
+    return new Promise(function(resolve,reject){
+        //解析 url 地址
+        var urlData = urltil.parse(url);
+        //设置 https.request  options 传入的参数对象
+        var options={
+            //目标主机地址
+            hostname: urlData.hostname,
+            //目标地址
+            path: urlData.path,
+            //请求方法
+            method: 'POST',
+            //头部协议
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'Content-Length': Buffer.byteLength(data,'utf-8')
+            }
+        };
+        var req = https.request(options,function(res){
+            var buffer = [],result = '';
+            //用于监听 data 事件 接收数据
+            res.on('data',function(data){
+                buffer.push(data);
+            });
+            //用于监听 end 事件 完成数据的接收
+            res.on('end',function(){
+                result = Buffer.concat(buffer).toString('utf-8');
+                resolve(result);
+            })
+        })
+        //监听错误事件
+            .on('error',function(err){
+                console.log(err);
+                reject(err);
+            });
+        //传入数据
+        req.write(data);
+        req.end();
+    });
+}
 
 
 class WeChat {
@@ -129,6 +172,18 @@ class WeChat {
         });
     }
 
+    /**
+     *
+     */
+    createMenu (data) {
+        //格式化请求连接
+        var url = util.format(this.apiURL.createMenu, this.apiDomain, data);
+        //使用 Post 请求创建微信菜单
+        requestPost(url, JSON.stringify(menus))
+            .then(function (data) {
+                console.log(data)
+            })
+    }
 }
 
 module.exports = WeChat;

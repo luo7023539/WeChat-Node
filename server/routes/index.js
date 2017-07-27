@@ -8,11 +8,15 @@ let express = require('express'), //express 框架
 
 let we = new WeChat(config);
 
+router.post('/',function(req,res){
+    we.handleMsg(req,res);
+});
+
 router.get('/', function (req, res) {
   res.render('index', {
     title: 'Hello WeChat Server',
   });
-})
+});
 
 router.all('/auth', function(req, res){
   we
@@ -26,9 +30,8 @@ router.get('/getAccessToken',function(req, res){
           res.send(data);
           we.createMenu(data)
       });
-
-
 });
+
 
 module.exports = router;
 

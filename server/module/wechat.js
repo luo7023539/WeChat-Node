@@ -184,6 +184,28 @@ class WeChat {
                 console.log(data)
             })
     }
+
+    handleMsg (req, res) {
+        var buffer = [];
+        //监听 data 事件 用于接收数据
+        req.on('data',function(data){
+            buffer.push(data);
+        });
+        //监听 end 事件 用于处理接收完成的数据
+        req.on('end',function(){
+            var msgXml = Buffer.concat(buffer).toString('utf-8');
+            //解析xml
+            parseString(msgXml,{explicitArray : false},function(err,result){
+                if(!err){
+                    //打印解析结果
+                    console.log(result);
+                }else{
+                    //打印错误信息
+                    console.log(err);
+                }
+            })
+        });
+    }
 }
 
 module.exports = WeChat;

@@ -5,7 +5,7 @@ const crypto = require('crypto'), //引入加密模块
       util = require('util'),
       urltil = require('url'),
       fs = require('fs'),
-      logger = require('morgan'),
+      msg = require('./msg'),
       localAccessToken = require('../access_token'),
       menus = require('../menus'),
       parseString = require('xml2js').parseString;
@@ -186,7 +186,7 @@ class WeChat {
             })
     }
 
-    handleMsg (req, res) {
+    handleMsg (req,res){
         var buffer = [];
         //监听 data 事件 用于接收数据
         req.on('data',function(data){
@@ -198,8 +198,42 @@ class WeChat {
             //解析xml
             parseString(msgXml,{explicitArray : false},function(err,result){
                 if(!err){
-                    //打印解析结果
-                    console.log(result);
+                    result = result.xml;
+                    var toUser = result.ToUserName; //接收方微信
+                    var fromUser = result.FromUserName;//发送仿微信
+                    //判断事件类型
+                    console.log(result)
+                    if(result.Event){
+                        switch (result.Event){
+                            case 'subscribe':
+                                var content = "欢迎关注 罗椋 公众号，一起斗图吧。回复以下数字：\n";
+                                content += "1.你是谁\n";
+                                content += "2.关于Node.js\n";
+                                content += "回复 “文章”  可以得到图文推送哦~\n";
+                                res.send(msg.txtMsg(fromUser, toUser, content));
+                                break;
+                            case 'unsubscribe':
+                                res.send(msg.txtMsg(fromUser, toUser, '别走嘛!!'));
+                                break;
+                        }
+                    }else{
+                        switch (result.Content){
+                            case '1':
+                                res.send(msg.txtMsg(fromUser,toUser,'Hello ！我是罗椋'));
+                                break;
+                            case '2':
+                                res.send(msg.txtMsg(fromUser,toUser,'Node.js是一个开放源代码、跨平台的JavaScript语言运行环境，采用Google开发的V8运行代码,使用事件驱动、非阻塞和异步输入输出模型等技术来提高性能，可优化应用程序的传输量和规模。这些技术通常用于数据密集的事实应用程序'));
+                                break;
+                            case '文章':
+                                var contentArr = [
+                                    {Title:"Node.js 微信自定义菜单",Description:"使用Node.js实现自定义微信菜单",PicUrl:"http://img.blog.csdn.net/20170605162832842?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvaHZrQ29kZXI=/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast",Url:"http://blog.csdn.net/hvkcoder/article/details/72868520"},
+                                    {Title:"Node.js access_token的获取、存储及更新",Description:"Node.js access_token的获取、存储及更新",PicUrl:"http://img.blog.csdn.net/20170528151333883?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvaHZrQ29kZXI=/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast",Url:"http://blog.csdn.net/hvkcoder/article/details/72783631"},
+                                    {Title:"Node.js 接入微信公众平台开发",Description:"Node.js 接入微信公众平台开发",PicUrl:"http://img.blog.csdn.net/20170605162832842?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvaHZrQ29kZXI=/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast",Url:"http://blog.csdn.net/hvkcoder/article/details/72765279"}
+                                ];
+                                //回复图文消息
+                                res.send(msg.graphicMsg(fromUser,toUser,contentArr));
+                        }
+                    }
                 }else{
                     //打印错误信息
                     console.log(err);
@@ -207,6 +241,7 @@ class WeChat {
             })
         });
     }
+
 }
 
 module.exports = WeChat;

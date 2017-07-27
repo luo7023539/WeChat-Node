@@ -7,7 +7,8 @@ const crypto = require('crypto'), //引入加密模块
       fs = require('fs'),
       logger = require('morgan'),
       localAccessToken = require('../access_token'),
-      menus = require('../menus');
+      menus = require('../menus'),
+      parseString = require('xml2js').parseString;
 
 let sendHttps = function(url){
     console.log('Send Https', url);
